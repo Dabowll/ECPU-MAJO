@@ -16,6 +16,7 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
+            line-height: 1.6;
         }
 
         .container {
@@ -42,6 +43,30 @@
         .header p {
             font-size: 1.1rem;
             opacity: 0.9;
+            margin-bottom: 20px;
+        }
+
+        .admin-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .admin-btn {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid white;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .admin-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
         }
 
         .form-section {
@@ -155,6 +180,24 @@
         .focus-areas {
             color: #666;
             font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+
+        .exam-tips {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #eee;
+        }
+
+        .exam-tips ul {
+            margin: 5px 0;
+            padding-left: 15px;
+            font-size: 0.85rem;
+        }
+
+        .common-mistakes {
+            margin-top: 8px;
+            font-size: 0.85rem;
         }
 
         .recommendations {
@@ -162,6 +205,7 @@
             padding: 20px;
             border-radius: 10px;
             border-left: 5px solid #28a745;
+            margin-bottom: 20px;
         }
 
         .recommendations h3 {
@@ -187,6 +231,106 @@
             left: 0;
         }
 
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            margin: 50px auto;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .modal h3 {
+            margin-bottom: 15px;
+            color: #4facfe;
+            border-bottom: 2px solid #4facfe;
+            padding-bottom: 5px;
+        }
+
+        .admin-form {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .admin-form input, .admin-form select, .admin-form textarea {
+            margin-bottom: 10px;
+        }
+
+        .admin-form textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 16px;
+            resize: vertical;
+        }
+
+        .btn {
+            background: #4facfe;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            transition: background 0.3s ease;
+        }
+
+        .btn:hover {
+            background: #3a8bdb;
+        }
+
+        .btn-success {
+            background: #28a745;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        .btn-secondary:hover {
+            background: #545b62;
+        }
+
+        .final-note {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #4facfe;
+        }
+
+        .final-note p {
+            margin: 0;
+            font-style: italic;
+            color: #666;
+        }
+
         @media (max-width: 768px) {
             .header h1 {
                 font-size: 2rem;
@@ -199,6 +343,21 @@
             .subjects-grid {
                 grid-template-columns: 1fr;
             }
+
+            .admin-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .modal-content {
+                margin: 20px;
+                padding: 20px;
+                max-height: 90vh;
+            }
+        }
+
+        #importFile {
+            display: none;
         }
     </style>
 </head>
@@ -207,6 +366,12 @@
         <div class="header">
             <h1>🎓 HSC Study Plan Generator</h1>
             <p>AI-powered personalized study plans for Year 12 students</p>
+            <div class="admin-buttons">
+                <button id="adminBtn" class="admin-btn">⚙️ Admin Panel</button>
+                <button id="exportBtn" class="admin-btn">📥 Export Data</button>
+                <button id="importBtn" class="admin-btn">📤 Import Data</button>
+            </div>
+            <input type="file" id="importFile" accept=".json">
         </div>
 
         <div class="form-section">
@@ -254,111 +419,358 @@
         </div>
     </div>
 
-    <script>
-        // HSC Knowledge Bank
-        const HSC_SUBJECTS = {
-            'Mathematics Extension 2': { difficulty: 10, weeklyHours: 8, focus: ['Complex Numbers', 'Integration', 'Mechanics', 'Proof'] },
-            'Mathematics Extension 1': { difficulty: 9, weeklyHours: 6, focus: ['Functions', 'Calculus', 'Combinatorics', 'Probability'] },
-            'Mathematics Advanced': { difficulty: 7, weeklyHours: 5, focus: ['Calculus', 'Statistics', 'Financial Math', 'Trigonometry'] },
-            'Physics': { difficulty: 8, weeklyHours: 6, focus: ['Mechanics', 'Electricity', 'Waves', 'Modern Physics'] },
-            'Chemistry': { difficulty: 8, weeklyHours: 6, focus: ['Organic Chemistry', 'Acids/Bases', 'Equilibrium', 'Production'] },
-            'Biology': { difficulty: 6, weeklyHours: 5, focus: ['Heredity', 'Genetic Change', 'Infectious Disease', 'Non-infectious Disease'] },
-            'English Advanced': { difficulty: 7, weeklyHours: 5, focus: ['Texts and Context', 'Close Study', 'Craft of Writing', 'Reading to Write'] },
-            'English Standard': { difficulty: 5, weeklyHours: 4, focus: ['Close Study', 'Texts and Context', 'Contemporary Possibilities', 'Literature'] },
-            'Modern History': { difficulty: 6, weeklyHours: 4, focus: ['National Study', 'Peace and Conflict', 'Change in Modern World'] },
-            'Ancient History': { difficulty: 6, weeklyHours: 4, focus: ['Core Study', 'Ancient Societies', 'Personalities', 'Historical Periods'] },
-            'Economics': { difficulty: 7, weeklyHours: 5, focus: ['Markets', 'Australia\'s Place', 'Economic Issues', 'Economic Policies'] },
-            'Business Studies': { difficulty: 5, weeklyHours: 4, focus: ['Nature of Business', 'Business Management', 'Marketing', 'Finance'] },
-            'Legal Studies': { difficulty: 6, weeklyHours: 4, focus: ['Crime', 'Human Rights', 'Family', 'World Order'] },
-            'Software Design': { difficulty: 7, weeklyHours: 5, focus: ['Design and Development', 'Software Development Cycle', 'Programming'] },
-            'Visual Arts': { difficulty: 4, weeklyHours: 6, focus: ['Artmaking', 'Art Criticism', 'Art History', 'Conceptual Framework'] }
-        };
+    <!-- Admin Modal -->
+    <div id="adminModal" class="modal">
+        <div class="modal-content">
+            <h2>⚙️ Knowledge Bank Admin Panel</h2>
+            
+            <div class="admin-form">
+                <h3>Add New Subject</h3>
+                <input type="text" id="newSubjectName" placeholder="Subject Name">
+                <input type="number" id="newSubjectDifficulty" placeholder="Difficulty (1-10)" min="1" max="10">
+                <input type="number" id="newSubjectHours" placeholder="Weekly Hours" min="1" max="20">
+                <input type="text" id="newSubjectFocus" placeholder="Focus Areas (comma separated)">
+                <textarea id="newSubjectTips" placeholder="Exam Tips (one per line)" rows="3"></textarea>
+                <button id="addSubjectBtn" class="btn">Add Subject</button>
+            </div>
 
-        // Simple neural network simulation (simplified for web)
-        class SimpleStudyPlanner {
-            generatePlan(studentData) {
+            <div class="admin-form">
+                <h3>Add Study Tip</h3>
+                <select id="tipCategory">
+                    <option value="time_management">Time Management</option>
+                    <option value="exam_preparation">Exam Preparation</option>
+                    <option value="stress_management">Stress Management</option>
+                    <option value="memory_techniques">Memory Techniques</option>
+                </select>
+                <input type="text" id="newTip" placeholder="Enter new study tip">
+                <button id="addTipBtn" class="btn btn-success">Add Tip</button>
+            </div>
+
+            <div style="text-align: right;">
+                <button id="closeAdminBtn" class="btn btn-secondary">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Knowledge Bank Management System
+        class KnowledgeBank {
+            constructor() {
+                this.subjects = {};
+                this.studyTips = {};
+                this.examStrategies = {};
+                this.loadDefaultData();
+            }
+
+            async loadKnowledgeBank() {
+                try {
+                    const response = await fetch('knowledge-bank.json');
+                    if (response.ok) {
+                        const data = await response.json();
+                        this.subjects = data.subjects || {};
+                        this.studyTips = data.studyTips || {};
+                        this.examStrategies = data.examStrategies || {};
+                        console.log('✅ Knowledge bank loaded from JSON file');
+                        return;
+                    }
+                } catch (error) {
+                    console.log('📝 No external knowledge bank found, using default data');
+                }
+
+                const stored = localStorage.getItem('hsc-knowledge-bank');
+                if (stored) {
+                    const data = JSON.parse(stored);
+                    this.subjects = data.subjects || {};
+                    this.studyTips = data.studyTips || {};
+                    this.examStrategies = data.examStrategies || {};
+                    console.log('✅ Knowledge bank loaded from local storage');
+                } else {
+                    console.log('📚 Using default knowledge bank');
+                }
+            }
+
+            saveKnowledgeBank() {
+                const data = {
+                    subjects: this.subjects,
+                    studyTips: this.studyTips,
+                    examStrategies: this.examStrategies,
+                    lastUpdated: new Date().toISOString()
+                };
+                localStorage.setItem('hsc-knowledge-bank', JSON.stringify(data));
+                console.log('💾 Knowledge bank saved to local storage');
+            }
+
+            addSubject(name, data) {
+                this.subjects[name] = {
+                    difficulty: data.difficulty || 5,
+                    weeklyHours: data.weeklyHours || 4,
+                    focus: data.focus || [],
+                    prerequisites: data.prerequisites || [],
+                    examTips: data.examTips || [],
+                    commonMistakes: data.commonMistakes || [],
+                    resources: data.resources || [],
+                    ...data
+                };
+                this.saveKnowledgeBank();
+                console.log(`📚 Added/Updated subject: ${name}`);
+            }
+
+            addStudyTip(category, tip) {
+                if (!this.studyTips[category]) {
+                    this.studyTips[category] = [];
+                }
+                this.studyTips[category].push(tip);
+                this.saveKnowledgeBank();
+            }
+
+            getSubject(name) {
+                return this.subjects[name] || {
+                    difficulty: 5,
+                    weeklyHours: 4,
+                    focus: ['General Study'],
+                    examTips: [],
+                    commonMistakes: [],
+                    resources: []
+                };
+            }
+
+            loadDefaultData() {
+                this.subjects = {
+                    'Mathematics Extension 2': {
+                        difficulty: 10,
+                        weeklyHours: 8,
+                        focus: ['Complex Numbers', 'Integration', 'Mechanics', 'Proof'],
+                        prerequisites: ['Mathematics Extension 1'],
+                        examTips: ['Practice proof writing', 'Master complex number operations', 'Time management crucial'],
+                        commonMistakes: ['Rushing through proofs', 'Not showing all working', 'Poor notation'],
+                        resources: ['Cambridge textbook', 'Past HSC papers', 'Online tutorials']
+                    },
+                    'Mathematics Extension 1': {
+                        difficulty: 9,
+                        weeklyHours: 6,
+                        focus: ['Functions', 'Calculus', 'Combinatorics', 'Probability'],
+                        prerequisites: ['Mathematics Advanced'],
+                        examTips: ['Learn probability trees', 'Practice differentiation speed', 'Memorize key formulas'],
+                        commonMistakes: ['Combinatorics confusion', 'Integration errors', 'Probability misconceptions'],
+                        resources: ['Fitzpatrick textbook', 'THSC online', 'Study groups']
+                    },
+                    'Mathematics Advanced': {
+                        difficulty: 7,
+                        weeklyHours: 5,
+                        focus: ['Calculus', 'Statistics', 'Financial Math', 'Trigonometry'],
+                        prerequisites: ['Year 11 Mathematics'],
+                        examTips: ['Calculator efficiency', 'Statistical interpretation', 'Financial math applications'],
+                        commonMistakes: ['Calculator errors', 'Units in financial math', 'Statistical bias'],
+                        resources: ['Maths in Focus', 'Excel for statistics', 'Financial calculators']
+                    },
+                    'Physics': {
+                        difficulty: 8,
+                        weeklyHours: 6,
+                        focus: ['Mechanics', 'Electricity', 'Waves', 'Modern Physics'],
+                        prerequisites: ['Mathematics Advanced recommended'],
+                        examTips: ['Diagram everything', 'Unit analysis', 'Practice calculations daily'],
+                        commonMistakes: ['Wrong units', 'Vector confusion', 'Formula misapplication'],
+                        resources: ['Jacaranda textbook', 'PhET simulations', 'Practical experiments']
+                    },
+                    'Chemistry': {
+                        difficulty: 8,
+                        weeklyHours: 6,
+                        focus: ['Organic Chemistry', 'Acids/Bases', 'Equilibrium', 'Production'],
+                        prerequisites: ['Year 11 Chemistry'],
+                        examTips: ['Memorize reaction equations', 'Practice nomenclature', 'Understand mechanisms'],
+                        commonMistakes: ['Balancing equations', 'pH calculations', 'Organic naming'],
+                        resources: ['Conquering Chemistry', 'ChemSketch', 'Lab experiments']
+                    },
+                    'Biology': {
+                        difficulty: 6,
+                        weeklyHours: 5,
+                        focus: ['Heredity', 'Genetic Change', 'Infectious Disease', 'Non-infectious Disease'],
+                        prerequisites: ['Year 11 Biology'],
+                        examTips: ['Draw detailed diagrams', 'Learn scientific names', 'Practice data analysis'],
+                        commonMistakes: ['Terminology confusion', 'Incomplete diagrams', 'Statistics errors'],
+                        resources: ['Excel Biology', 'Scientific journals', 'Microscopy practice']
+                    },
+                    'English Advanced': {
+                        difficulty: 7,
+                        weeklyHours: 5,
+                        focus: ['Texts and Context', 'Close Study', 'Craft of Writing', 'Reading to Write'],
+                        prerequisites: ['Strong Year 11 English'],
+                        examTips: ['Memorize quotes', 'Practice essay structure', 'Analyze literary techniques'],
+                        commonMistakes: ['Poor time management', 'Weak thesis', 'Insufficient quotes'],
+                        resources: ['Study guides', 'Past papers', 'Teacher feedback']
+                    },
+                    'English Standard': {
+                        difficulty: 5,
+                        weeklyHours: 4,
+                        focus: ['Close Study', 'Texts and Context', 'Contemporary Possibilities', 'Literature'],
+                        prerequisites: ['Year 11 English'],
+                        examTips: ['Focus on comprehension', 'Practice writing speed', 'Understand rubrics'],
+                        commonMistakes: ['Not answering the question', 'Poor paragraph structure', 'Weak examples'],
+                        resources: ['Excel Study Guides', 'BBC Learning', 'Writing workshops']
+                    },
+                    'Modern History': {
+                        difficulty: 6,
+                        weeklyHours: 4,
+                        focus: ['National Study', 'Peace and Conflict', 'Change in Modern World'],
+                        examTips: ['Use historical examples', 'Structure arguments clearly', 'Reference sources'],
+                        commonMistakes: ['Weak evidence', 'Poor chronology', 'Biased arguments'],
+                        resources: ['Past papers', 'Historical documentaries', 'Primary sources']
+                    },
+                    'Economics': {
+                        difficulty: 7,
+                        weeklyHours: 5,
+                        focus: ['Markets', 'Australia\'s Place', 'Economic Issues', 'Economic Policies'],
+                        examTips: ['Use current examples', 'Draw economic diagrams', 'Analyze statistics'],
+                        commonMistakes: ['Outdated examples', 'Poor diagram labels', 'Weak analysis'],
+                        resources: ['RBA website', 'Economic newspapers', 'Statistical data']
+                    }
+                };
+
+                this.studyTips = {
+                    'time_management': [
+                        'Use Pomodoro Technique (25 min study, 5 min break)',
+                        'Create weekly timetables with specific goals',
+                        'Priority matrix: urgent vs important tasks'
+                    ],
+                    'exam_preparation': [
+                        'Start revision 6-8 weeks before exams',
+                        'Practice past papers under timed conditions',
+                        'Create summary sheets for each topic'
+                    ],
+                    'stress_management': [
+                        'Regular exercise and adequate sleep',
+                        'Mindfulness and breathing exercises',
+                        'Talk to counselors or trusted adults'
+                    ],
+                    'memory_techniques': [
+                        'Use spaced repetition for memorizing facts',
+                        'Create memory palaces for complex information',
+                        'Teach concepts to others to reinforce learning'
+                    ]
+                };
+            }
+
+            exportData() {
+                return JSON.stringify({
+                    subjects: this.subjects,
+                    studyTips: this.studyTips,
+                    examStrategies: this.examStrategies,
+                    exported: new Date().toISOString()
+                }, null, 2);
+            }
+
+            importData(jsonString) {
+                try {
+                    const data = JSON.parse(jsonString);
+                    this.subjects = { ...this.subjects, ...data.subjects };
+                    this.studyTips = { ...this.studyTips, ...data.studyTips };
+                    this.examStrategies = { ...this.examStrategies, ...data.examStrategies };
+                    this.saveKnowledgeBank();
+                    console.log('✅ Knowledge bank imported successfully');
+                    return true;
+                } catch (error) {
+                    console.error('❌ Error importing knowledge bank:', error);
+                    return false;
+                }
+            }
+        }
+
+        // Enhanced Study Planner
+        class EnhancedStudyPlanner {
+            constructor(knowledgeBank) {
+                this.kb = knowledgeBank;
+            }
+
+            async generatePlan(studentData) {
+                await this.kb.loadKnowledgeBank();
+
                 const { subjects, targetAtar, studyHours, weeksRemaining, grades } = studentData;
                 const plan = {
                     subjectAllocation: {},
-                    recommendations: []
+                    recommendations: [],
+                    examStrategies: {},
+                    resources: {},
+                    studyTips: []
                 };
 
-                // Calculate base allocation based on subject difficulty
                 let totalDifficulty = 0;
                 const subjectData = [];
 
                 subjects.forEach(subject => {
-                    const info = HSC_SUBJECTS[subject];
-                    if (info) {
-                        totalDifficulty += info.difficulty;
-                        subjectData.push({ name: subject, ...info });
-                    }
+                    const info = this.kb.getSubject(subject);
+                    totalDifficulty += info.difficulty;
+                    subjectData.push({ name: subject, ...info });
                 });
 
-                // Allocate time based on difficulty and current performance
                 subjectData.forEach(subject => {
                     let baseAllocation = (subject.difficulty / totalDifficulty) * studyHours;
                     
-                    // Adjust based on current grade
                     const currentGrade = grades[subject.name] || 70;
                     if (currentGrade < 60) {
-                        baseAllocation *= 1.4; // More time for struggling subjects
-                        plan.recommendations.push(`Focus extra time on ${subject.name} - current performance needs improvement`);
-                    } else if (currentGrade > 85) {
-                        baseAllocation *= 0.8; // Less time for strong subjects
-                        plan.recommendations.push(`Maintain strong performance in ${subject.name}`);
-                    }
-
-                    // Adjust based on target ATAR
-                    if (targetAtar > 90) {
-                        baseAllocation *= 1.2; // More intensive for high targets
-                    }
-
-                    // Adjust based on time remaining
-                    if (weeksRemaining < 10) {
-                        baseAllocation *= 1.3; // Intensify if close to exams
-                        if (!plan.recommendations.includes('Focus on exam revision and past papers')) {
-                            plan.recommendations.push('Focus on exam revision and past papers');
+                        baseAllocation *= 1.4;
+                        plan.recommendations.push(`📚 Focus extra time on ${subject.name} - current performance needs improvement`);
+                        
+                        if (subject.commonMistakes.length > 0) {
+                            plan.recommendations.push(`⚠️ ${subject.name}: Avoid ${subject.commonMistakes[0]}`);
                         }
+                    } else if (currentGrade > 85) {
+                        baseAllocation *= 0.8;
+                        plan.recommendations.push(`✅ Maintain strong performance in ${subject.name}`);
+                    }
+
+                    if (targetAtar > 90) {
+                        baseAllocation *= 1.2;
+                    }
+
+                    if (weeksRemaining < 10) {
+                        baseAllocation *= 1.3;
+                        if (!plan.recommendations.find(r => r.includes('exam revision'))) {
+                            plan.recommendations.push('🕒 Focus on exam revision and past papers');
+                        }
+                        plan.examStrategies[subject.name] = subject.examTips;
                     }
 
                     plan.subjectAllocation[subject.name] = {
                         weeklyHours: Math.round(baseAllocation * 10) / 10,
-                        focusAreas: subject.focus.slice(0, 3)
+                        focusAreas: subject.focus.slice(0, 3),
+                        examTips: subject.examTips,
+                        commonMistakes: subject.commonMistakes
                     };
+
+                    if (subject.resources.length > 0) {
+                        plan.resources[subject.name] = subject.resources;
+                    }
                 });
 
-                // Add general recommendations
                 if (targetAtar > 95) {
-                    plan.recommendations.push('Consider forming study groups for difficult concepts');
+                    plan.studyTips.push(...this.kb.studyTips['exam_preparation'] || []);
                 }
                 if (studyHours > 30) {
-                    plan.recommendations.push('Remember to schedule regular breaks and maintain work-life balance');
+                    plan.studyTips.push(...this.kb.studyTips['stress_management'] || []);
+                }
+                if (weeksRemaining < 12) {
+                    plan.studyTips.push(...this.kb.studyTips['time_management'] || []);
                 }
 
                 return plan;
             }
         }
 
-        // Initialize the page
-        document.addEventListener('DOMContentLoaded', function() {
+        // Initialize
+        const knowledgeBank = new KnowledgeBank();
+        let planner;
+
+        document.addEventListener('DOMContentLoaded', async function() {
             const subjectsGrid = document.getElementById('subjectsGrid');
             const gradesSection = document.getElementById('gradesSection');
             const studyPlanForm = document.getElementById('studyPlanForm');
-            const planner = new SimpleStudyPlanner();
+            
+            await knowledgeBank.loadKnowledgeBank();
+            planner = new EnhancedStudyPlanner(knowledgeBank);
 
-            // Populate subjects
-            Object.keys(HSC_SUBJECTS).forEach(subject => {
-                const subjectDiv = document.createElement('div');
-                subjectDiv.className = 'subject-item';
-                subjectDiv.innerHTML = `
-                    <input type="checkbox" id="${subject.replace(/\s+/g, '')}" name="subjects" value="${subject}">
-                    <label for="${subject.replace(/\s+/g, '')}">${subject}</label>
-                `;
-                subjectsGrid.appendChild(subjectDiv);
-            });
+            setupAdminPanel();
+            populateSubjects();
 
-            // Update grades section when subjects are selected
             subjectsGrid.addEventListener('change', function() {
                 const selectedSubjects = Array.from(document.querySelectorAll('input[name="subjects"]:checked'))
                     .map(input => input.value);
@@ -375,8 +787,7 @@
                 });
             });
 
-            // Handle form submission
-            studyPlanForm.addEventListener('submit', function(e) {
+            studyPlanForm.addEventListener('submit', async function(e) {
                 e.preventDefault();
                 
                 const formData = new FormData(studyPlanForm);
@@ -404,10 +815,132 @@
                     grades: grades
                 };
 
-                const studyPlan = planner.generatePlan(studentData);
+                const studyPlan = await planner.generatePlan(studentData);
                 displayStudyPlan(studyPlan, studentData);
             });
         });
+
+        function populateSubjects() {
+            const subjectsGrid = document.getElementById('subjectsGrid');
+            subjectsGrid.innerHTML = '';
+            
+            Object.keys(knowledgeBank.subjects).forEach(subject => {
+                const subjectDiv = document.createElement('div');
+                subjectDiv.className = 'subject-item';
+                subjectDiv.innerHTML = `
+                    <input type="checkbox" id="${subject.replace(/\s+/g, '')}" name="subjects" value="${subject}">
+                    <label for="${subject.replace(/\s+/g, '')}">${subject}</label>
+                `;
+                subjectsGrid.appendChild(subjectDiv);
+            });
+        }
+
+        function setupAdminPanel() {
+            const adminBtn = document.getElementById('adminBtn');
+            const adminModal = document.getElementById('adminModal');
+            const closeAdminBtn = document.getElementById('closeAdminBtn');
+            const addSubjectBtn = document.getElementById('addSubjectBtn');
+            const addTipBtn = document.getElementById('addTipBtn');
+            const exportBtn = document.getElementById('exportBtn');
+            const importBtn = document.getElementById('importBtn');
+            const importFile = document.getElementById('importFile');
+
+            adminBtn.addEventListener('click', () => {
+                adminModal.style.display = 'block';
+            });
+
+            closeAdminBtn.addEventListener('click', () => {
+                adminModal.style.display = 'none';
+            });
+
+            addSubjectBtn.addEventListener('click', () => {
+                const name = document.getElementById('newSubjectName').value;
+                const difficulty = parseInt(document.getElementById('newSubjectDifficulty').value);
+                const hours = parseInt(document.getElementById('newSubjectHours').value);
+                const focus = document.getElementById('newSubjectFocus').value.split(',').map(s => s.trim());
+                const tips = document.getElementById('newSubjectTips').value.split('\n').filter(t => t.trim());
+
+                if (name && difficulty && hours) {
+                    knowledgeBank.addSubject(name, {
+                        difficulty: difficulty,
+                        weeklyHours: hours,
+                        focus: focus,
+                        examTips: tips,
+                        commonMistakes: [],
+                        resources: []
+                    });
+                    
+                    alert(`✅ Subject "${name}" added successfully!`);
+                    
+                    // Clear form
+                    document.getElementById('newSubjectName').value = '';
+                    document.getElementById('newSubjectDifficulty').value = '';
+                    document.getElementById('newSubjectHours').value = '';
+                    document.getElementById('newSubjectFocus').value = '';
+                    document.getElementById('newSubjectTips').value = '';
+                    
+                    // Refresh subjects list
+                    populateSubjects();
+                } else {
+                    alert('❌ Please fill in all required fields');
+                }
+            });
+
+            addTipBtn.addEventListener('click', () => {
+                const category = document.getElementById('tipCategory').value;
+                const tip = document.getElementById('newTip').value;
+
+                if (tip) {
+                    knowledgeBank.addStudyTip(category, tip);
+                    alert(`✅ Study tip added to ${category}!`);
+                    document.getElementById('newTip').value = '';
+                } else {
+                    alert('❌ Please enter a study tip');
+                }
+            });
+
+            exportBtn.addEventListener('click', () => {
+                const data = knowledgeBank.exportData();
+                const blob = new Blob([data], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'hsc-knowledge-bank.json';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                alert('📥 Knowledge bank exported successfully!');
+            });
+
+            importBtn.addEventListener('click', () => {
+                importFile.click();
+            });
+
+            importFile.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const success = knowledgeBank.importData(e.target.result);
+                        if (success) {
+                            alert('📤 Knowledge bank imported successfully! Refreshing subjects...');
+                            populateSubjects();
+                        } else {
+                            alert('❌ Error importing knowledge bank. Please check file format.');
+                        }
+                    };
+                    reader.readAsText(file);
+                }
+            });
+
+            // Close modal when clicking outside
+            adminModal.addEventListener('click', (e) => {
+                if (e.target === adminModal) {
+                    adminModal.style.display = 'none';
+                }
+            });
+        }
 
         function displayStudyPlan(plan, studentData) {
             const resultsDiv = document.getElementById('results');
@@ -432,14 +965,69 @@
                         <div class="focus-areas">
                             <strong>Focus Areas:</strong> ${details.focusAreas.join(', ')}
                         </div>
-                    </div>
                 `;
+                
+                if (details.examTips && details.examTips.length > 0) {
+                    html += `
+                        <div class="exam-tips">
+                            <strong>💡 Exam Tips:</strong>
+                            <ul>
+                                ${details.examTips.slice(0, 2).map(tip => `<li>${tip}</li>`).join('')}
+                            </ul>
+                        </div>
+                    `;
+                }
+                
+                if (details.commonMistakes && details.commonMistakes.length > 0) {
+                    html += `
+                        <div class="common-mistakes">
+                            <strong style="color: #dc3545;">⚠️ Avoid:</strong> 
+                            <span>${details.commonMistakes[0]}</span>
+                        </div>
+                    `;
+                }
+                
+                html += `</div>`;
             });
 
+            html += `</div>`;
+
+            // Add study tips if available
+            if (plan.studyTips && plan.studyTips.length > 0) {
+                html += `
+                    <div class="recommendations">
+                        <h3>💡 Study Tips</h3>
+                        <ul>
+                `;
+                plan.studyTips.forEach(tip => {
+                    html += `<li>${tip}</li>`;
+                });
+                html += `</ul></div>`;
+            }
+
+            // Add resources if available
+            if (plan.resources && Object.keys(plan.resources).length > 0) {
+                html += `
+                    <div class="recommendations" style="border-left-color: #17a2b8;">
+                        <h3>📚 Recommended Resources</h3>
+                `;
+                Object.entries(plan.resources).forEach(([subject, resources]) => {
+                    html += `
+                        <div style="margin-bottom: 15px;">
+                            <strong>${subject}:</strong>
+                            <ul style="margin-top: 5px;">
+                                ${resources.map(resource => `<li>${resource}</li>`).join('')}
+                            </ul>
+                        </div>
+                    `;
+                });
+                html += `</div>`;
+            }
+
+            // Add general recommendations
             html += `
-                </div>
                 <div class="recommendations">
-                    <h3>💡 Personalized Recommendations</h3>
+                    <h3>📋 Personalized Recommendations</h3>
                     <ul>
             `;
 
@@ -449,10 +1037,15 @@
 
             html += `
                     </ul>
-                    <p style="margin-top: 15px; font-style: italic; color: #666;">
-                        💡 Remember: This AI-generated plan should be adjusted based on your learning style and specific needs. 
-                        Good luck with your HSC preparation! 🍀
-                    </p>
+                    <div class="final-note">
+                        <p>
+                            <strong>💡 Remember:</strong> This AI-generated plan is based on your knowledge bank data and should be adjusted based on your learning style and specific needs. 
+                            Good luck with your HSC preparation! 🍀
+                        </p>
+                        <p style="margin-top: 10px; font-size: 0.9rem;">
+                            🔄 You can update the knowledge bank anytime using the Admin Panel to improve future recommendations.
+                        </p>
+                    </div>
                 </div>
             `;
 
